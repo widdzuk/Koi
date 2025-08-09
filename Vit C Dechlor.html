@@ -1,1 +1,238 @@
-<!-- Add your HTML content here -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sodium Ascorbate Dechlorination Calculator</title>
+<style>
+  :root{
+    --bg:#0f172a; --panel:#111827; --ink:#e5e7eb; --muted:#9ca3af; --accent:#22c55e; --danger:#ef4444; --ring:#344154;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    color:var(--ink); background:radial-gradient(1200px 800px at 20% -10%,#1f2937 0,#0f172a 45%,#0b1220 100%);
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .card{
+    width:min(720px,100%); background:color-mix(in oklab, var(--panel), black 6%); border:1px solid var(--ring);
+    border-radius:16px; padding:24px 22px; box-shadow:0 10px 40px rgba(0,0,0,.4);
+  }
+  h1{font-size:1.4rem; margin:0 0 4px}
+  p.subtitle{margin:.2rem 0 1rem; color:var(--muted); font-size:.95rem}
+  .grid{display:grid; grid-template-columns:1fr; gap:12px}
+  @media (min-width:720px){ .grid{grid-template-columns:1fr 1fr} }
+  label{display:block; font-size:.9rem; color:var(--ink); margin:0 0 6px}
+  .row{background:#0b1020; border:1px solid #1e293b; border-radius:12px; padding:14px}
+  .ctrl{display:flex; gap:8px; align-items:center}
+  input[type="number"]{
+    width:100%; padding:12px 14px; font-size:1rem; border-radius:10px; border:1px solid #334155;
+    background:#0d1326; color:var(--ink); outline:none;
+  }
+  input[type="number"]:focus{border-color:#4b5563; box-shadow:0 0 0 3px #1f2937}
+  .unit{padding:.4rem .55rem; background:#0a0f1f; border:1px solid #1f2a3a; border-radius:8px; color:var(--muted); font-size:.9rem}
+  .hint{color:var(--muted); font-size:.85rem; margin-top:6px}
+  .result{
+    margin-top:16px; padding:16px; border-radius:12px; border:1px dashed #334155; background:#0a1122;
+  }
+  .result h2{margin:0 0 8px; font-size:1.15rem}
+  .big{font-size:1.75rem; font-weight:700}
+  .muted{color:var(--muted)}
+  .row.flex{display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .row.flex .left{flex:1}
+  input[type="range"]{width:180px}
+  .btns{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+  button{
+    appearance:none; border:1px solid #2a374a; background:#0e162b; color:var(--ink);
+    padding:.65rem .9rem; border-radius:10px; cursor:pointer; font-weight:600;
+  }
+  button.primary{border-color:transparent; background:linear-gradient(180deg,#16a34a,#15803d);}
+  button:disabled{opacity:.6; cursor:not-allowed}
+  .mini{font-size:.85rem}
+  .formula{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:.9rem}
+  .warn{color:var(--danger); font-weight:600}
+  .footer{margin-top:12px; font-size:.85rem; color:var(--muted)}
+  .ok{color:var(--accent); font-weight:600}
+</style>
+</head>
+<body>
+  <main class="card" role="main">
+    <h1>Sodium Ascorbate Dechlorination Calculator</h1>
+    <p class="subtitle">Calculate grams of <strong>sodium ascorbate</strong> to neutralize chlorine in pond water.</p>
+
+    <section class="grid" aria-label="Inputs">
+      <div class="row">
+        <label for="volume">Pond volume</label>
+        <div class="ctrl">
+          <input id="volume" name="volume" type="number" inputmode="decimal" min="0" step="0.1" placeholder="e.g., 10500" aria-describedby="volume-hint">
+          <span class="unit">L</span>
+        </div>
+        <div id="volume-hint" class="hint">Enter total pond volume in litres.</div>
+      </div>
+
+      <div class="row">
+        <label for="chlorine">Chlorine to remove</label>
+        <div class="ctrl">
+          <input id="chlorine" name="chlorine" type="number" inputmode="decimal" min="0" step="0.001" placeholder="e.g., 0.10" aria-describedby="chlorine-hint">
+          <span class="unit">mg/L</span>
+        </div>
+        <div id="chlorine-hint" class="hint">mg/L is the same as ppm (parts per million).</div>
+      </div>
+    </section>
+
+    <section class="row flex" aria-label="Options">
+      <div class="left">
+        <label for="safety">Safety margin <span class="muted mini">(optional)</span></label>
+        <div class="ctrl">
+          <input id="safety" type="range" min="0" max="20" step="1" value="5" aria-describedby="safety-hint">
+          <span><span id="safetyVal">+5</span>%</span>
+        </div>
+        <div id="safety-hint" class="hint">Adds a small buffer for test/mixing error (0–20%).</div>
+      </div>
+      <div class="btns">
+        <button class="primary" id="calcBtn" type="button">Calculate</button>
+        <button id="resetBtn" type="button">Reset</button>
+        <button id="copyBtn" type="button" title="Copy results">Copy result</button>
+      </div>
+    </section>
+
+    <section class="result" aria-live="polite">
+      <h2>Required sodium ascorbate</h2>
+      <div class="big" id="grams">—</div>
+      <div class="hint" id="detail">Enter values above to see the dose.</div>
+    </section>
+
+    <section class="row">
+      <details>
+        <summary>Method & formula</summary>
+        <p class="hint">
+          Stoichiometric ratio: <strong>2.8 parts sodium ascorbate per 1 part chlorine</strong>.
+        </p>
+        <p class="formula">
+          total chlorine (mg) = volume (L) × chlorine (mg/L)<br>
+          sodium ascorbate (mg) = total chlorine (mg) × 2.8<br>
+          sodium ascorbate (g) = sodium ascorbate (mg) ÷ 1000
+        </p>
+        <p class="hint">
+          Example: 10,500 L at 0.10 mg/L → 10,500×0.10=1,050 mg Cl₂ → ×2.8 = 2,940 mg → <strong>2.94 g</strong>.
+        </p>
+        <p class="hint">Sodium ascorbate is pH-neutral and won’t change water pH. After treatment, ensure pond and receiving stream pH differ by no more than ~0.2–0.5 units.</p>
+      </details>
+    </section>
+
+    <div class="footer">Tip: Dose gradually with strong aeration, re-test chlorine, then top up if needed. <span class="ok">Avoid big swings.</span></div>
+  </main>
+
+<script>
+(function(){
+  const $ = sel => document.querySelector(sel);
+  const volume = $("#volume");
+  const chlorine = $("#chlorine");
+  const safety = $("#safety");
+  const safetyVal = $("#safetyVal");
+  const gramsOut = $("#grams");
+  const detail = $("#detail");
+  const calcBtn = $("#calcBtn");
+  const resetBtn = $("#resetBtn");
+  const copyBtn = $("#copyBtn");
+
+  const RATIO = 2.8; // mg sodium ascorbate per mg chlorine
+
+  function clamp(n, min, max){ return Math.min(Math.max(n, min), max); }
+
+  function fmt(n){
+    if (!isFinite(n)) return "—";
+    if (n === 0) return "0 g";
+    // Show 2–3 sig figs depending on size
+    if (n < 0.1) return n.toFixed(3) + " g";
+    if (n < 10) return n.toFixed(2) + " g";
+    if (n < 100) return n.toFixed(1) + " g";
+    return Math.round(n).toLocaleString() + " g";
+  }
+
+  function calc(){
+    const V = parseFloat(volume.value);
+    const C = parseFloat(chlorine.value);
+    const s = clamp(parseInt(safety.value,10) || 0, 0, 20);
+
+    safetyVal.textContent = `+${s}`;
+
+    if (!(V > 0) || !(C >= 0)){
+      gramsOut.textContent = "—";
+      detail.innerHTML = "Enter values above to see the dose.";
+      return;
+    }
+
+    // mg chlorine = mg/L * L
+    const mgCl = C * V;
+    // mg sodium ascorbate = mgCl * 2.8
+    const mgSA = mgCl * RATIO;
+    // g sodium ascorbate
+    let gSA = mgSA / 1000;
+
+    // apply safety margin
+    gSA *= (1 + s/100);
+
+    gramsOut.textContent = fmt(gSA);
+
+    const base = (mgSA/1000);
+    detail.innerHTML =
+      `Base dose: <strong>${fmt(base).replace(' g','')}</strong> g &nbsp;` +
+      `(no margin). With <strong>${s}%</strong> margin → <strong>${fmt(gSA).replace(' g','')}</strong> g.`;
+  }
+
+  // Live update
+  ["input","change"].forEach(ev=>{
+    volume.addEventListener(ev, calc, {passive:true});
+    chlorine.addEventListener(ev, calc, {passive:true});
+    safety.addEventListener(ev, calc, {passive:true});
+  });
+
+  calcBtn.addEventListener("click", calc);
+  resetBtn.addEventListener("click", ()=>{
+    volume.value = "";
+    chlorine.value = "";
+    safety.value = 5;
+    calc();
+  });
+
+  copyBtn.addEventListener("click", async ()=>{
+    if (gramsOut.textContent.trim() === "—") return;
+    const txt = `Sodium ascorbate required: ${gramsOut.textContent} (with ${safety.value}% margin).`;
+    try{
+      await navigator.clipboard.writeText(txt);
+      copyBtn.textContent = "Copied!";
+      setTimeout(()=>copyBtn.textContent="Copy result", 1200);
+    }catch{
+      copyBtn.textContent = "Copy not allowed";
+      setTimeout(()=>copyBtn.textContent="Copy result", 1200);
+    }
+  });
+
+  // Persist last values (nice touch)
+  const LS_KEY = "sa_calc";
+  function save(){ 
+    const data = {v:volume.value, c:chlorine.value, s:safety.value};
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(data)); }catch{}
+  }
+  function load(){
+    try{
+      const data = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+      if (data.v) volume.value = data.v;
+      if (data.c) chlorine.value = data.c;
+      if (data.s) safety.value = data.s;
+    }catch{}
+  }
+  ["input","change"].forEach(ev=>{
+    volume.addEventListener(ev, save);
+    chlorine.addEventListener(ev, save);
+    safety.addEventListener(ev, save);
+  });
+
+  load();
+  calc();
+})();
+</script>
+</body>
+</html>
