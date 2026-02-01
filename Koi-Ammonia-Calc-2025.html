@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrimeLab Ammonia Calculator (Pro)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Modern Dark Mode Styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: #e2e8f0; /* Slate 200 */
+        }
+        .calculator-card {
+            background-color: #1e293b; /* Slate 800 */
+            border: 1px solid #334155; /* Slate 700 */
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 480px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #94a3b8; /* Slate 400 */
+            margin-bottom: 0.5rem;
+        }
+        .input-group input {
+            width: 100%;
+            background-color: #0f172a; /* Slate 900 */
+            border: 1px solid #334155; /* Slate 700 */
+            color: #f8fafc;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #6366f1; /* Indigo 500 */
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+        .calculate-btn {
+            width: 100%;
+            background-color: #4f46e5; /* Indigo 600 */
+            color: white;
+            font-weight: 600;
+            padding: 0.875rem;
+            border-radius: 0.75rem;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
+        }
+        .calculate-btn:hover {
+            background-color: #4338ca; /* Indigo 700 */
+        }
+        
+        /* Result Box Styling */
+        .result-box {
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            text-align: center;
+        }
+        .result-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+            margin: 0.5rem 0;
+        }
+        .result-unit {
+            font-size: 1rem;
+            color: #64748b;
+            font-weight: normal;
+        }
+        
+        /* Status Colors */
+        .status-safe { color: #4ade80; } /* Green */
+        .status-warning { color: #fb923c; } /* Orange */
+        .status-danger { color: #f87171; } /* Red */
+        
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="calculator-card">
+    <h1 class="text-2xl font-bold text-center mb-1">PrimeLab Ammonia Calc</h1>
+    <p class="text-center text-slate-400 text-sm mb-6">Calculates toxic NH3 from "mg/l (N)" readings.</p>
+
+    <div class="space-y-4">
+        <div class="input-group">
+            <label for="tan">Total Ammonia (TAN) from PrimeLab</label>
+            <div class="relative">
+                <input type="number" id="tan" step="0.01" placeholder="e.g. 0.06">
+                <span class="absolute right-4 top-3.5 text-slate-500 text-sm">mg/l (N)</span>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="ph">pH Level</label>
+            <input type="number" id
